@@ -1,0 +1,424 @@
+---
+output: html_document
+---
+
+# Universidade Federal do Amazonas
+## Instituto de Ciências Exatas e Tecnologia (ICET)
+
+**Docente:** Hidelbrando Ferreira Rodrigues  
+**Discentes:** Iêgo S. C. de Souza, Leyvijane F. Teixeira, Verissimo R. C. Neto
+
+### Relatório Técnico: Impacto da Cobertura de Código na Qualidade de Projetos
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+if (!require(dplyr)) install.packages("dplyr", dependencies = TRUE)
+if (!require(ggplot2)) install.packages("ggplot2", dependencies = TRUE)
+if (!require(e1071)) install.packages("e1071", dependencies = TRUE)
+library(readr)
+library(DT)
+library(dplyr)
+library(ggplot2)
+library(e1071)
+
+# Carregar os dados do arquivo CSV
+df_complete <- read.csv("./data/Base_Problema_4.csv")
+
+
+# Transformar "Cobertura de Código" em Categorias
+df_complete <- df_complete %>%
+  mutate(Cobertura.Categoria = cut(Cobertura.de.Código...., 
+                                   breaks = seq(0, 100, by = 10), 
+                                   include.lowest = TRUE, 
+                                   labels = paste0(seq(0, 90, by = 10), "-", seq(10, 100, by = 10), "%")))
+
+# Transformar "Qualidade do Código" em fator ordenado
+df_complete$Qualidade.do.Código <- factor(df_complete$Qualidade.do.Código, levels = c("Ruim", "Regular", "Boa", "Excelente"))
+
+# Instalar e carregar as bibliotecas necessárias
+if (!requireNamespace("readr", quietly = TRUE)) {
+  install.packages("readr")
+}
+if (!requireNamespace("DT", quietly = TRUE)) {
+  install.packages("DT")
+}
+
+library(readr)
+library(DT)
+
+# Caminho para o arquivo CSV
+caminho_arquivo <- "./data/Base_Problema_4.csv"
+
+# Carregar os dados no dataframe df_complete
+df_preset <- read_csv(caminho_arquivo)
+```
+
+
+### 1. Introdução
+
+No campo da engenharia de software, a análise da qualidade do código é essencial para garantir a eficácia e a eficiência dos projetos desenvolvidos. Qualidade do código não apenas influencia a facilidade de manutenção e evolução do software, mas também impacta diretamente a experiência do usuário final. Este estudo investiga a relação entre a cobertura de código, uma métrica que reflete a extensão dos testes automatizados, e a qualidade percebida do código em diferentes tipos de projetos de software (Web, Mobile, Desktop).
+A cobertura de código é uma medida quantitativa que indica a proporção de código que é coberta por testes automatizados. Idealmente, uma maior cobertura de código deve levar a uma redução no número de bugs reportados, melhorando assim a qualidade do software. No entanto, a qualidade do código também depende de fatores como a complexidade do projeto, a habilidade dos desenvolvedores e a natureza do próprio projeto (Web, Mobile, Desktop).
+Este estudo tem como objetivo principal entender como a cobertura de código influencia a quantidade de bugs reportados e como essa relação varia entre diferentes tipos de projetos. Além disso, analisaremos como a qualidade percebida do código é influenciada pela cobertura de testes e pelo número de bugs.
+
+### 2. Problemática e Objetivo do Estudo
+
+Os projetos de software enfrentam constantemente desafios relacionados à qualidade do código e à incidência de bugs. Embora a cobertura de código por testes automatizados seja frequentemente utilizada como uma métrica de qualidade, a relação direta entre essa cobertura e a quantidade de bugs reportados ainda não está completamente compreendida. Além disso, diferentes tipos de projetos (Web, Mobile, Desktop) podem apresentar padrões variados de qualidade e cobertura, complicando a generalização dos resultados.
+O objetivo deste estudo é investigar a relação entre a cobertura de código e a quantidade de bugs reportados em diferentes tipos de projetos de software. Especificamente, buscamos entender:
+Como a cobertura de código influencia a quantidade de bugs reportados.
+Como essa relação varia entre projetos Web, Mobile e Desktop.
+Como a qualidade percebida do código se relaciona com a cobertura de testes e a quantidade de bugs.
+Metodologia
+Coleta de Dados
+Os dados foram coletados de diversos projetos de software desenvolvidos em diferentes ambientes (Web, Mobile, Desktop). Para cada projeto, foram registrados o número de bugs reportados, a cobertura de código obtida através de testes automatizados, o tipo de projeto e a avaliação da qualidade do código.
+Análise Descritiva
+Será realizada uma análise descritiva para entender a distribuição das variáveis e identificar padrões iniciais nos dados. Esta análise incluirá estatísticas descritivas e visualizações gráficas para explorar as relações entre as variáveis.
+Análise Inferencial
+Serão aplicadas técnicas estatísticas para investigar as relações entre as variáveis quantitativas (bugs reportados e cobertura de código) e qualitativas (tipo de projeto e qualidade do código). Especificamente, serão utilizadas correlações e testes de hipóteses para avaliar a significância das relações observadas.
+
+### 3. Metodologia
+
+Claro! Aqui está um exemplo de texto para a seção de Metodologia de um relatório de análise de dados usando R Markdown:
+
+Metodologia
+A presente análise foi conduzida com o objetivo de avaliar a qualidade do código e a cobertura de código em um conjunto de dados específico. A seguir, detalhamos os passos e técnicas utilizadas para a realização desta análise.
+
+### 4. Base de Dados da Análise:
+#### 4.1 Carregamento dos Dados
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+datatable(df_complete, options = list(pageLength = 10, scrollX = TRUE), caption = "Dados dos projetos Mobile, Web e Desktop:")
+
+```
+
+
+#### 4.2 Váriaveis da base de dados:
+
+#### Descrição das Variáveis
+
+##### ID
+- **Descrição:** Identificador único para cada registro no conjunto de dados.
+- **Tipo:** Quantitativa Discreta
+
+##### Bugs Reportados
+- **Descrição:** Número de bugs reportados durante o ciclo de vida do projeto.
+- **Tipo:** Quantitativa Discreta
+- **Importância:** Esta variável fornece uma medida direta dos problemas encontrados no software, afetando diretamente a satisfação do usuário e a qualidade geral do produto.
+
+##### Cobertura de Código
+- **Descrição:** Porcentagem de cobertura de código obtida através de testes automatizados.
+- **Tipo:** Quantitativa Contínua
+- **Importância:** A cobertura de código é uma métrica crucial para avaliar a eficácia dos testes. Uma alta cobertura de código geralmente indica que uma maior parte do código foi testada, potencialmente reduzindo a quantidade de bugs.
+
+##### Tipo de Projeto
+- **Descrição:** Tipo de projeto de software (Web, Mobile, Desktop).
+- **Tipo:** Qualitativa Nominal
+- **Importância:** Diferentes tipos de projetos podem apresentar desafios distintos. Por exemplo, projetos Web podem focar mais na responsividade e escalabilidade, enquanto projetos Mobile podem priorizar a performance e a usabilidade.
+
+##### Qualidade do Código
+- **Descrição:** Avaliação da qualidade do código (Excelente, Boa, Regular, Ruim).
+- **Tipo:** Qualitativa Ordinal
+- **Importância:** A qualidade do código é uma medida subjetiva que pode influenciar a manutenção e a evolução do software. Código de alta qualidade é mais fácil de entender, modificar e escalar.
+
+### 5 Analise Descritiva
+
+#### 5.1 Estatísticas Descritivas
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Variabilidade para Qualidade do Código
+summary(df_complete$Qualidade.do.Código)
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Variabilidade para Cobertura de Código
+summary(df_complete$Cobertura.Categoria)
+```
+##### 5.1.1 Diagramas de Ramo-E-Folhas
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Variabilidade para Cobertura de Código
+stem(df_complete$Cobertura.de.Código....)
+
+```
+##### 5.1.2 Tabelas de Distribuição de Frequência
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Calcular a tabela de distribuição de frequência para Qualidade do Código
+freq_qualidade <- df_complete %>%
+  group_by(Qualidade.do.Código) %>%
+  summarise(Frequencia = n()) %>%
+  mutate(Proporcao = Frequencia / sum(Frequencia),
+         Proporcao_pct = Proporcao * 100,
+         Frequencia_Acumulada = cumsum(Frequencia),
+         Proporcao_Acumulada = cumsum(Proporcao),
+         Proporcao_Acumulada_pct = Proporcao_Acumulada * 100)
+
+# Verificar a tabela
+print(freq_qualidade)
+
+# Função para exibir tabelas formatadas em markdown
+print_table <- function(df, title) {
+  cat("###", title, "\n\n")
+  cat("| Categoria | f | rf | rf(%) | cf | cf(%) |\n")
+  cat("|-----------|---|----|-------|----|-------|\n")
+  for (i in 1:nrow(df)) {
+    cat("|", as.character(df[i, 1]), "|", df$Frequencia[i], "|", sprintf("%.2f", df$Proporcao[i]), "|", sprintf("%.2f%%", df$Proporcao_pct[i]), "|", df$Frequencia_Acumulada[i], "|", sprintf("%.2f%%", df$Proporcao_Acumulada_pct[i]), "|\n")
+  }
+  cat("\n")
+}
+
+# Exibir a tabela formatada
+print_table(freq_qualidade, "Tabela de Distribuição de Frequência para Qualidade do Código")
+
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Calcular a tabela de distribuição de frequência para Cobertura de Código
+freq_cobertura <- df_complete %>%
+  group_by(Cobertura.Categoria) %>%
+  summarise(Frequencia = n()) %>%
+  mutate(Proporcao = Frequencia / sum(Frequencia),
+         Proporcao_pct = Proporcao * 100,
+         Frequencia_Acumulada = cumsum(Frequencia),
+         Proporcao_Acumulada = cumsum(Proporcao),
+         Proporcao_Acumulada_pct = Proporcao_Acumulada * 100)
+
+# Verificar a tabela
+print(freq_cobertura)
+
+# Exibir a tabela formatada
+print_table(freq_cobertura, "Tabela de Distribuição de Frequência para Cobertura de Código")
+```
+
+##### 5.1.3 Histogramas
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Variabilidade para Qualidade do Código
+ggplot(df_complete, aes(x = Cobertura.de.Código....)) +
+  geom_histogram(binwidth = 5, fill = "blue", color = "black", alpha = 0.7) +
+  labs(title = "Histograma da Cobertura de Código para Projetos Web, Mobile e Desktop",
+       x = "Cobertura de Código (%)",
+       y = "Frequência") +
+  theme_minimal()
+
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Variabilidade para Cobertura de Código
+ggplot(df_complete, aes(x = Qualidade.do.Código, fill = Qualidade.do.Código)) +
+  geom_bar() +
+  labs(title = "Distribuição da Qualidade do Código",
+       x = "Qualidade do Código",
+       y = "Frequência") +
+  scale_fill_brewer(palette = "Pastel1") +  # Utiliza uma paleta de cores
+  theme_minimal() +
+  theme(legend.position = "none")  # Remove a legenda se a cor não adiciona informação
+
+
+```
+
+##### 5.1.4 Ogiva De Galton
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Ogiva de Cobertura de Código
+df_complete <- df_complete %>%
+  mutate(Qualidade.Num = case_when(
+    Qualidade.do.Código == "Excelente" ~ 4,
+    Qualidade.do.Código == "Boa" ~ 3,
+    Qualidade.do.Código == "Regular" ~ 2,
+    Qualidade.do.Código == "Ruim" ~ 1
+  ))
+
+qualidade_freq <- df_complete %>%
+  group_by(Qualidade.Num) %>%
+  summarise(Frequencia = n()) %>%
+  mutate(Frequencia_Acumulada = cumsum(Frequencia))
+
+ggplot(qualidade_freq, aes(x = Qualidade.Num, y = Frequencia_Acumulada)) +
+  geom_line(group = 1) +
+  geom_point() +
+  labs(title = "Ogiva de Qualidade do Código", x = "Qualidade Numérica", y = "Frequência Acumulada")
+
+
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Ogiva de Cobertura de Código
+
+total_cobertura <- df_complete %>%
+  select(Cobertura.de.Código....) %>%
+  mutate(Cobertura.Intervalo = cut(Cobertura.de.Código...., breaks = 5))
+
+# Calcular a frequência acumulada por intervalo
+total_cobertura_freq <- total_cobertura %>%
+  group_by(Cobertura.Intervalo) %>%
+  summarise(Frequencia = n()) %>%
+  mutate(Frequencia.Acumulada = cumsum(Frequencia))
+
+# Criar o gráfico de ogiva para Cobertura de Código
+ggplot(total_cobertura_freq, aes(x = Cobertura.Intervalo, y = Frequencia.Acumulada, group = 1)) +
+  geom_line(color = "blue", size = 1) +
+  geom_point(color = "blue", size = 3) +
+  labs(title = "Ogiva de Cobertura de Código Total",
+       x = "Intervalo de Cobertura de Código (%)",
+       y = "Frequência Acumulada") +
+  theme_minimal()
+
+
+```
+
+
+##### 5.1.5 Medidas de Tendência Central
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Variabilidade para Qualidade do Código
+moda_qualidade <- df_complete %>%
+  group_by(Qualidade.do.Código) %>%
+  summarise(Frequencia = n()) %>%
+  arrange(desc(Frequencia)) %>%
+  slice(1) %>%
+  pull(Qualidade.do.Código)
+
+media_qualidade <- mean(df_complete$Qualidade.Num, na.rm = TRUE)
+mediana_qualidade <- median(df_complete$Qualidade.Num, na.rm = TRUE)
+
+cat("Moda da Qualidade do Código: ", moda_qualidade, "\n")
+cat("Média da Qualidade do Código: ", media_qualidade, "\n")
+cat("Mediana da Qualidade do Código: ", mediana_qualidade, "\n")
+
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Variabilidade para Cobertura de Código
+media_cobertura <- mean(df_complete$Cobertura.de.Código...., na.rm = TRUE)
+mediana_cobertura <- median(df_complete$Cobertura.de.Código...., na.rm = TRUE)
+moda_cobertura <- df_complete %>%
+  group_by(Cobertura.de.Código....) %>%
+  summarise(Frequencia = n()) %>%
+  arrange(desc(Frequencia)) %>%
+  slice(1) %>%
+  pull(Cobertura.de.Código....)
+
+cat("Média da Cobertura de Código: ", media_cobertura, "\n")
+cat("Mediana da Cobertura de Código: ", mediana_cobertura, "\n")
+cat("Moda da Cobertura de Código: ", moda_cobertura, "\n")
+```
+
+##### 5.1.6 Medidas de Variabilidade
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+variancia_qualidade <- var(df_complete$Qualidade.Num, na.rm = TRUE)
+desvio_padrao_qualidade <- sd(df_complete$Qualidade.Num, na.rm = TRUE)
+amplitude_qualidade <- max(df_complete$Qualidade.Num, na.rm = TRUE) - min(df_complete$Qualidade.Num, na.rm = TRUE)
+
+cat("Variância da Qualidade do Código: ", variancia_qualidade, "\n")
+cat("Desvio Padrão da Qualidade do Código: ", desvio_padrao_qualidade, "\n")
+cat("Amplitude da Qualidade do Código: ", amplitude_qualidade, "\n")
+
+```
+
+##### 5.1.7 Análise de Assimetria
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Variabilidade para Qualidade do Código
+assimetria_qualidade <- skewness(df_complete$Qualidade.Num, na.rm = TRUE)
+cat("Assimetria da Qualidade do Código: ", assimetria_qualidade, "\n")
+
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Variabilidade para Cobertura de Código
+assimetria_cobertura <- skewness(df_complete$Cobertura.de.Código...., na.rm = TRUE)
+cat("Assimetria da Cobertura de Código: ", assimetria_cobertura, "\n")
+```
+
+##### 5.1.8 Boxplot
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Variabilidade para Qualidade do Código
+ggplot(df_complete, aes(y = Qualidade.Num, x = Qualidade.do.Código)) +
+  geom_boxplot(fill = "lightblue", color = "black") +
+  labs(title = "Boxplot para Qualidade do Código", x = "Qualidade do Código", y = "Valor Numérico")
+
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Variabilidade para Cobertura de Código
+ggplot(df_complete, aes(y = Cobertura.de.Código....)) +
+  geom_boxplot(fill = "lightgreen", color = "black") +
+  labs(title = "Boxplot para Cobertura de Código", y = "Cobertura de Código (%)")
+
+
+```
+
+#### 5.2 Variaveis Qualitativas.
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Variabilidade para Qualidade do Código
+summary(df_complete$Qualidade.do.Código)
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Variabilidade para Cobertura de Código
+summary(df_complete$Cobertura.de.Código....)
+```
+
+##### 5.2.1 Tabela de Contingência
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Variabilidade para Qualidade do Código
+tabela_contingencia <- table(df_complete$Qualidade.do.Código, df_complete$Cobertura.Categoria)
+knitr::kable(tabela_contingencia, caption = "Tabela de Contingência para Qualidade do Código e Cobertura de Código")
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Variabilidade para Cobertura de Código
+proporcao_qualidade <- prop.table(table(df_complete$Qualidade.do.Código))
+knitr::kable(as.data.frame(proporcao_qualidade), col.names = c("Qualidade do Código", "Proporção"), caption = "Proporção para Qualidade do Código")
+```
+
+##### 5.2.2 Proporção
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Variabilidade para Qualidade do Código
+proporcao_qualidade <- prop.table(table(df_complete$Qualidade.do.Código))
+knitr::kable(as.data.frame(proporcao_qualidade), col.names = c("Qualidade do Código", "Proporção"), caption = "Proporção para Qualidade do Código")
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Variabilidade para Cobertura de Código
+proporcao_cobertura <- prop.table(table(df_complete$Cobertura.Categoria))
+knitr::kable(as.data.frame(proporcao_cobertura), col.names = c("Cobertura de Código", "Proporção"), caption = "Proporção para Cobertura de Código")
+```
+
+#### 5.3 Variabilidade
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Variabilidade para Qualidade do Código
+variancia_qualidade <- var(df_complete$Qualidade.Num, na.rm = TRUE)
+desvio_padrao_qualidade <- sd(df_complete$Qualidade.Num, na.rm = TRUE)
+amplitude_qualidade <- max(df_complete$Qualidade.Num, na.rm = TRUE) - min(df_complete$Qualidade.Num, na.rm = TRUE)
+
+cat("Variância da Qualidade do Código: ", variancia_qualidade, "\n")
+cat("Desvio Padrão da Qualidade do Código: ", desvio_padrao_qualidade, "\n")
+cat("Amplitude da Qualidade do Código: ", amplitude_qualidade, "\n")
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Variabilidade para Cobertura de Código
+variancia_cobertura <- var(df_complete$Cobertura.de.Código...., na.rm = TRUE)
+desvio_padrao_cobertura <- sd(df_complete$Cobertura.de.Código...., na.rm = TRUE)
+amplitude_cobertura <- max(df_complete$Cobertura.de.Código...., na.rm = TRUE) - min(df_complete$Cobertura.de.Código...., na.rm = TRUE)
+
+cat("Variância da Cobertura de Código: ", variancia_cobertura, "\n")
+cat("Desvio Padrão da Cobertura de Código: ", desvio_padrao_cobertura, "\n")
+cat("Amplitude da Cobertura de Código: ", amplitude_cobertura, "\n")
+```
+
+### 6. Conclusão
+
+Este estudo forneceu insights valiosos sobre a relação entre a cobertura de código e a qualidade percebida do código em diferentes tipos de projetos de software. Em geral, encontramos que uma maior cobertura de código tende a se associar a um menor número de bugs reportados, o que sugere que investir em testes automatizados pode ser uma estratégia eficaz para melhorar a qualidade do software.
+
+Além disso, a análise revelou variações significativas entre diferentes tipos de projetos. Por exemplo, projetos Mobile podem exigir uma atenção especial à cobertura de código para mitigar bugs devido à complexidade e às expectativas de desempenho desses aplicativos.
+
+### 7. Recomendações
+
+Com base nos resultados deste estudo, apresentamos as seguintes recomendações:
+Aumentar a Cobertura de Código: Esforços devem ser feitos para aumentar a cobertura de código em todos os tipos de projetos. Ferramentas de análise de cobertura e testes automatizados devem ser integradas aos processos de desenvolvimento para garantir que uma maior proporção do código seja testada.
+Foco Diferenciado por Tipo de Projeto: Projetos Mobile, devido às suas particularidades, podem se beneficiar de uma cobertura de código ainda mais abrangente. Recomenda-se também que projetos Web e Desktop mantenham uma cobertura de código robusta, embora possam requerer ajustes específicos baseados nas suas características únicas.
+Melhoria Contínua na Qualidade do Código: Além da cobertura de código, a qualidade geral do código deve ser uma prioridade contínua. Investimentos em treinamento de desenvolvedores e revisões de código podem ajudar a manter altos padrões de qualidade.
+Monitoramento e Feedback: Implementar sistemas de monitoramento contínuo de bugs e feedback pode ajudar a identificar rapidamente áreas problemáticas e ajustar a estratégia de testes conforme necessário.
+Estas recomendações visam ajudar os gerentes de projetos e desenvolvedores de software a melhorar a qualidade do código, reduzir a incidência de bugs e, em última análise, aumentar a satisfação dos usuários finais.
+
+### 8. Referências
+RODRIGUES SOARES, Elifrancis. Adaptação do processo de desenvolvimento de software para análise de cobertura de código. 2007. Dissertação de Mestrado. Universidade Federal de Pernambuco.
+
+PERES, Fernanda. R Markdown: Gerando relatórios usando o R. Disponível em: [https://youtu.be/177TA5Gyse4?feature=shared](https://youtu.be/177TA5Gyse4?feature=shared). Acesso em: 22 jun. 2024.
